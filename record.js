@@ -86,7 +86,10 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
     // load played moves
 }
 
-Record.prototype.nextMove = function() {}
+Record.prototype.nextMove = function() {
+    
+}
+
 Record.prototype.previousMove = function() {}
 Record.prototype.playMove = function() {}
 
@@ -102,11 +105,11 @@ function Move() {
 }
 
 Move.prototype.addNextMove = function(mv) {
-    if (move.next_move == null) {
-        move.next_move = mv;
-    } else if (move.next_move instanceof Move) {
-        move.next_move = [move.next_move, mv];
+    if (this.next_move == null) {
+        this.next_move = mv;
+    } else if (this.next_move instanceof Move) {
+        this.next_move = [this.next_move, mv];
     } else {
-        move.next_move.push(mv);
+        this.next_move.push(mv);
     }
 }
