@@ -77,17 +77,25 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
 
     // load static moves
     root_mv.aw.forEach(function(coded_coord) {
-        board.addStone(coded_coord.charCodeAt(1) - 97, coded_coord.charCodeAt(0) - 97, "w");
+        var board_coords = sgfCoordToIndecies(coded_coord);
+        board.addStone(board_coords[1], board_coords[0], "w");
     });
     root_mv.ab.forEach(function(coded_coord) {
-        board.addStone(coded_coord.charCodeAt(1) - 97, coded_coord.charCodeAt(0) - 97, "b");
+        var board_coords = sgfCoordToIndecies(coded_coord);
+        board.addStone(board_coords[1], board_coords[0], "b");
     });
 
     // load played moves
 }
 
 Record.prototype.nextMove = function() {
-    
+    if (this.current_move.next_move) {
+        this.current_move = this.current_move.next_move;
+        var board_coords = sgfCoordToIndecies(this.current_move.position);
+        if (board_coords) {
+            this.board.addStone(board_coords[1], board_coords[0], this.current_move.color.toLowerCase());
+        }
+    }
 }
 
 Record.prototype.previousMove = function() {}
@@ -111,5 +119,13 @@ Move.prototype.addNextMove = function(mv) {
         this.next_move = [this.next_move, mv];
     } else {
         this.next_move.push(mv);
+    }
+}
+
+function sgfCoordToIndecies(sgf_coord) {
+    if (sgf_coord) {
+        return [sgf_coord.charCodeAt(0) - 97, sgf_coord.charCodeAt(1) - 97];
+    } else {
+        return [];
     }
 }
