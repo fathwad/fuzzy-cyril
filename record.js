@@ -1,5 +1,5 @@
 function Record() {
-    this.board = null;
+    this.board = new Board();
     this.current_move = null;
 }
 
@@ -7,6 +7,7 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
     // Parse sgf_data and build move_stack
     var value_re = /\[[^\]]*\]/, cur_mv, last_mv, last_method, variation_stack, root_mv;
 
+    this.board.clearBoard();
     while (sgf_data.length > 0) {
         var match_index = sgf_data.search(value_re), values, value_prefix;
         if (match_index >= 0) {
@@ -72,33 +73,44 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
         }
     }
     this.current_move = root_mv;
-    var board = new Board();
-    this.board = board;
 
     // load static moves
     root_mv.aw.forEach(function(coded_coord) {
         var board_coords = sgfCoordToIndecies(coded_coord);
-        board.addStone(board_coords[1], board_coords[0], "w");
+        board.addStone(board_coords[1], board_coords[0], "w", true);
     });
     root_mv.ab.forEach(function(coded_coord) {
         var board_coords = sgfCoordToIndecies(coded_coord);
-        board.addStone(board_coords[1], board_coords[0], "b");
+        board.addStone(board_coords[1], board_coords[0], "b", true);
     });
 
     // load played moves
+
+    this.board.dispatchEvent("change");
 }
 
 Record.prototype.nextMove = function() {
     if (this.current_move.next_move) {
         this.current_move = this.current_move.next_move;
-        var board_coords = sgfCoordToIndecies(this.current_move.position);
-        if (board_coords) {
-            this.board.addStone(board_coords[1], board_coords[0], this.current_move.color.toLowerCase());
+        if (this.current_move.raw_board) {
+            this.board.deserialize(this.current_move.raw_board);
+        } else {
+            var board_coords = sgfCoordToIndecies(this.current_move.position);
+            if (board_coords) {
+                this.board.addStone(board_coords[1], board_coords[0], this.current_move.color.toLowerCase());
+            }
+            this.current_move.raw_board = this.board.serialize();
         }
     }
 }
 
-Record.prototype.previousMove = function() {}
+Record.prototype.previousMove = function() {
+    if (this.current_move.previous_move) {
+        this.current_move = this.current_move.previous_move;
+        this.board.deserialize(this.current_move.raw_board);
+    }
+}
+
 Record.prototype.playMove = function() {}
 
 function Move() {
@@ -107,6 +119,7 @@ function Move() {
     this.comment = "";
     this.position = null;
     this.next_move = null;
+    this.previous_move = null;
     this.meta = "";
     this.aw = [];
     this.ab = [];
@@ -120,6 +133,7 @@ Move.prototype.addNextMove = function(mv) {
     } else {
         this.next_move.push(mv);
     }
+    mv.previous_move = this;
 }
 
 function sgfCoordToIndecies(sgf_coord) {

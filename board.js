@@ -1,8 +1,23 @@
 function Board(size) {
     this.size = parseInt(size) || 19;
     this.stones = null;
+    this._events = {};
 
     this.clearBoard();
+}
+
+Board.prototype.addEventListener = function(event_name, callback) {
+    var callbacks = this._events[event_name] = this._events[event_name] || [];
+    callbacks.push(callback);
+}
+
+Board.prototype.dispatchEvent = function(event_name, args) {
+    if (this._events.hasOwnProperty(event_name)) {
+        var callbacks = this._events[event_name];
+        for (var i = 0; i < callbacks.length; i++) {
+            callbacks[i].apply(this, args);
+        }
+    }
 }
 
 Board.prototype.clearBoard = function() {
@@ -11,14 +26,19 @@ Board.prototype.clearBoard = function() {
     for (var i = 0; i < this.stones.length; i++) {
         this.stones[i] = new Array(this.size);
     }
+
+    this.dispatchEvent("change");
 }
 
-Board.prototype.addStone = function(x, y, color) {
+Board.prototype.addStone = function(x, y, color, suppress_change_event) {
     if (x < this.stones.length && y < this.stones.length && !this.stones[x][y]) {
         var stone = new Stone(x, y, this, color);
         this.stones[x][y] = stone;
         stone.mergeGroup();
         stone.killNeighbors();
+    }
+    if (!suppress_change_event) {
+        this.dispatchEvent("change");
     }
 }
 
@@ -46,14 +66,15 @@ Board.prototype.deserialize = function(raw) {
 
     if (raw.hasOwnProperty("w")) {
         raw.w.forEach(function(coord) {
-            board.addStone(coord.x, coord.y, "w");
+            board.addStone(coord.x, coord.y, "w", true);
         });
     }
     if (raw.hasOwnProperty("b")) {
         raw.b.forEach(function(coord) {
-            board.addStone(coord.x, coord.y, "b");
+            board.addStone(coord.x, coord.y, "b", true);
         });
     }
+    this.dispatchEvent("change");
 }
 
 function Stone(x, y, board, color) {
