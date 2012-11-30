@@ -91,6 +91,10 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
 
 Record.prototype.nextMove = function() {
     if (this.current_move.next_move) {
+        if (!this.current_move.raw_board) {
+            this.current_move.raw_board = this.board.serialize();
+        }
+
         this.current_move = this.current_move.next_move;
         if (this.current_move.raw_board) {
             this.board.deserialize(this.current_move.raw_board);

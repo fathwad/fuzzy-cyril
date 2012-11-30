@@ -2,6 +2,7 @@ function draw_board(board, canvas) {
     var ctx = canvas.getContext("2d"), dim = 450, margins = 10;
 
     ctx.clearRect(0,0,500,500);
+    ctx.beginPath();
 
     // Vertical lines
     for (var i = 0; i <= 18; i++) {
@@ -32,6 +33,7 @@ function draw_board(board, canvas) {
     ctx.strokeStyle = "rgb(0,0,0)";
     ctx.lineWidth = 1.0;
     ctx.stroke();
+    ctx.closePath();
 
     for (var i = 0; i < board.stones.length; i++) {
         for (var j = 0; j < board.stones[i].length; j++) {
@@ -50,6 +52,7 @@ function draw_board(board, canvas) {
                     ctx.fillStyle = "rgb(255,255,255)";
                 }
                 ctx.fill();
+                ctx.closePath();
             }
         }
     }
