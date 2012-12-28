@@ -26,8 +26,6 @@ Board.prototype.clearBoard = function() {
     for (var i = 0; i < this.stones.length; i++) {
         this.stones[i] = new Array(this.size);
     }
-
-    //this.dispatchEvent("change");
 }
 
 Board.prototype.addStone = function(x, y, color, suppress_change_event) {

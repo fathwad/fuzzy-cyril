@@ -1,6 +1,7 @@
 function Record() {
     this.board = new Board();
     this.current_move = null;
+    this.root_move = null;
 }
 
 Record.prototype.loadFromSgfString = function(sgf_data) {
@@ -73,6 +74,7 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
         }
     }
     this.current_move = root_mv;
+    this.root_move = root_mv;
 
     // load static moves
     root_mv.aw.forEach(function(coded_coord) {
@@ -90,6 +92,10 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
 }
 
 Record.prototype.nextMove = function() {
+    return this._nextMove(false)
+}
+
+Record.prototype._nextMove = function(suppress_change_event) {
     if (this.current_move.next_move) {
         if (!this.current_move.raw_board) {
             this.current_move.raw_board = this.board.serialize();
@@ -101,7 +107,7 @@ Record.prototype.nextMove = function() {
         } else {
             var board_coords = sgfCoordToIndecies(this.current_move.position);
             if (board_coords) {
-                this.board.addStone(board_coords[1], board_coords[0], this.current_move.color.toLowerCase());
+                this.board.addStone(board_coords[1], board_coords[0], this.current_move.color.toLowerCase(), suppress_change_event);
             }
             this.current_move.raw_board = this.board.serialize();
         }
@@ -116,6 +122,20 @@ Record.prototype.previousMove = function() {
 }
 
 Record.prototype.playMove = function() {}
+
+Record.prototype.jumpToMove = function(move_num, variation) {
+    if (!variation) {
+        variation = [];
+    }
+    var move_counter = 0;
+    this.current_move = this.root_move;
+    this.board.clearBoard();
+    while (move_counter < move_num) {
+        this._nextMove(true);
+        move_counter++;
+    }
+    this.board.dispatchEvent("change");
+}
 
 function Move() {
     this.color = null;
