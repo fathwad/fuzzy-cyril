@@ -6,32 +6,33 @@ function Record() {
 
 Record.prototype.loadFromSgfString = function(sgf_data) {
     // Parse sgf_data and build move_stack
-    var value_re = /\[[^\]]*\]/, cur_mv, last_mv, last_method, variation_stack, root_mv;
+    var value_re = /\[[^\]]*\]/, cur_mv, last_mv, root_mv, method, cur_char,
+        last_method, variation_stack, match_index, values, value_prefix;
 
     this.board.clearBoard();
     while (sgf_data.length > 0) {
-        var match_index = sgf_data.search(value_re), values, value_prefix;
+        match_index = sgf_data.search(value_re);
         if (match_index >= 0) {
             values = value_re.exec(sgf_data);
             value_prefix = sgf_data.substr(0, match_index).replace(/\s/g, "");
             sgf_data = sgf_data.substr(match_index + values[0].length);
 
             // Find the current method and handle variations
-            var c, method = "";
+            method = "";
             while (value_prefix.length > 0) {
-                c = value_prefix.charAt(0);
+                cur_char = value_prefix.charAt(0);
                 value_prefix = value_prefix.substr(1);
-                if (c === "(") {
+                if (cur_char === "(") {
                     // Start new variation
                     if (last_mv) {
                         variation_stack.push(cur_mv);
                     }
-                } else if (c === ")") {
+                } else if (cur_char === ")") {
                     // End the current variation
                     if (variation_stack.length > 0) {
                         cur_mv = variation_stack.pop();
                     }
-                } else if (c === ";") {
+                } else if (cur_char === ";") {
                     // Start a new move
                     last_mv = cur_mv;
                     cur_mv = new Move();
@@ -40,7 +41,7 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
                         last_mv.addNextMove(cur_mv);
                     }
                 } else {
-                    method += c;
+                    method += cur_char;
                 }
             }
             method = method.trim();

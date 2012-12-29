@@ -13,8 +13,8 @@ Board.prototype.addEventListener = function(event_name, callback) {
 
 Board.prototype.dispatchEvent = function(event_name, args) {
     if (this._events.hasOwnProperty(event_name)) {
-        var callbacks = this._events[event_name];
-        for (var i = 0; i < callbacks.length; i++) {
+        var callbacks = this._events[event_name], i;
+        for (i = 0; i < callbacks.length; i++) {
             callbacks[i].apply(this, args);
         }
     }
@@ -41,10 +41,10 @@ Board.prototype.addStone = function(x, y, color, suppress_change_event) {
 }
 
 Board.prototype.serialize = function() {
-    var raw_board = {w: [], b: [], size: this.size};
-    for (var i = 0; i < this.stones.length; i++) {
-        for (var j = 0; j < this.stones.length; j++) {
-            var stone = this.stones[i][j];
+    var raw_board = {w: [], b: [], size: this.size}, stone, i, j;
+    for (i = 0; i < this.stones.length; i++) {
+        for (j = 0; j < this.stones.length; j++) {
+            stone = this.stones[i][j];
             if (stone) {
                 raw_board[stone.color].push({x: i, y: j});
             }
@@ -90,9 +90,7 @@ Stone.prototype.neighbors = function(action, array_fn) {
         {x: this.x + 1, y: this.y},
         {x: this.x, y: this.y - 1},
         {x: this.x, y: this.y + 1}
-    ];
-    var board = this.board;
-    var stone = this;
+    ], board = this.board, stone = this;
     return neighbor_coords.filter(function(coord) {
             return coord.x >= 0 && coord.y >= 0 && coord.x < board.stones.length && coord.y < board.stones.length;
         })[array_fn](function(coord) {
@@ -147,14 +145,16 @@ Stone.prototype.die = function() {
 
 function Group(stones) {
     this.stones = stones;
-    for (var i = 0; i < stones.length; i++) {
+    var i;
+    for (i = 0; i < stones.length; i++) {
         stones[i].group = this;
     }
 }
 
 Group.prototype.setNewGroup = function(group) {
+    var i;
     if (this != group) {
-        for (var i = 0; i < this.stones.length; i++) {
+        for (i = 0; i < this.stones.length; i++) {
             this.stones[i].group = group;
         }
         group.stones = group.stones.concat(this.stones);
