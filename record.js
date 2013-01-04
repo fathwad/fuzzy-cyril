@@ -7,7 +7,7 @@ function Record() {
 Record.prototype.loadFromSgfString = function(sgf_data) {
     // Parse sgf_data and build move_stack
     var value_re = /\[[^\]]*\]/, cur_mv, last_mv, root_mv, method, cur_char,
-        last_method, variation_stack, match_index, values, value_prefix;
+        last_method, variation_stack = [], match_index, values, value_prefix;
 
     this.board.clearBoard();
     while (sgf_data.length > 0) {
@@ -78,22 +78,26 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
     this.root_move = root_mv;
 
     // load static moves
-    root_mv.aw.forEach(function(coded_coord) {
-        var board_coords = sgfCoordToIndecies(coded_coord);
-        board.addStone(board_coords[1], board_coords[0], "w", true);
-    });
-    root_mv.ab.forEach(function(coded_coord) {
-        var board_coords = sgfCoordToIndecies(coded_coord);
-        board.addStone(board_coords[1], board_coords[0], "b", true);
-    });
-
-    // load played moves
+    drawStatic(root_mv, this.board);
 
     this.board.dispatchEvent("change");
 }
 
+function drawStatic(move, board) {
+    if (move) {
+        move.aw.forEach(function(coded_coord) {
+            var board_coords = sgfCoordToIndecies(coded_coord);
+            board.addStone(board_coords[1], board_coords[0], "w", true);
+        });
+        move.ab.forEach(function(coded_coord) {
+            var board_coords = sgfCoordToIndecies(coded_coord);
+            board.addStone(board_coords[1], board_coords[0], "b", true);
+        });
+    }
+}
+
 Record.prototype.nextMove = function() {
-    return this._nextMove(false)
+    return this._nextMove(false);
 }
 
 Record.prototype._nextMove = function(suppress_change_event) {
@@ -107,9 +111,15 @@ Record.prototype._nextMove = function(suppress_change_event) {
             this.board.deserialize(this.current_move.raw_board);
         } else {
             var board_coords = sgfCoordToIndecies(this.current_move.position);
-            if (board_coords) {
+            if (board_coords && this.current_move.color) {
                 this.board.addStone(board_coords[1], board_coords[0], this.current_move.color.toLowerCase(), suppress_change_event);
             }
+            drawStatic(this.current_move, this.board);
+
+            if (!suppress_change_event) {
+                this.board.dispatchEvent("change");
+            }
+
             this.current_move.raw_board = this.board.serialize();
         }
     }

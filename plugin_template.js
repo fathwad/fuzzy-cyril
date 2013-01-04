@@ -12,7 +12,7 @@
         if (!record) {
             record = new Record();
             record.board.addEventListener("change", function() {
-                draw_board(this, jq_obj[0]);
+                drawBoard(this, jq_obj[0]);
             });
             if (typeof sgf_data_or_url === "string") {
                 if (endsWith(sgf_data_or_url, ".sgf")) {
