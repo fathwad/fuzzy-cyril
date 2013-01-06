@@ -41,6 +41,13 @@ Board.prototype.addStone = function(x, y, color, suppress_change_event) {
     }
 }
 
+Board.prototype.removeStone = function (x, y, suppress_change_event) {
+    var stone = this.stones[x][y];
+    if (stone) {
+        
+    }
+}
+
 Board.prototype.serialize = function() {
     var raw_board = {w: [], b: [], size: this.size}, stone, i, j;
     for (i = 0; i < this.stones.length; i++) {
@@ -99,6 +106,29 @@ Stone.prototype.neighbors = function(action, array_fn) {
         });
 }
 
+Stone.prototype.rediscoverGroup = function(new_group) {
+    if (!new_group) {
+        new_group = new Group();
+    }
+
+    console.log("rediscovering group");
+
+    if (this.group) {
+        this.group.stones = this.group.stones.filter(function(stone) {
+            return stone != this;
+        });
+    }
+    this.group = new_group;
+    this.group.stones.push(this);
+
+    var reassignNeighbors = function(neighbor) {
+        if (neighbor && this.color == neighbor.color && this.group != neighbor.group) {
+            neighbor.rediscoverGroup(new_group);
+        }
+    };
+    this.neighbors(reassignNeighbors);
+}
+
 Stone.prototype.mergeGroup = function() {
     var merge_neighbor = function(neighbor) {
         if (neighbor && neighbor.color == this.color) {
@@ -134,17 +164,22 @@ Stone.prototype.hasLiberty = function() {
     return this.neighbors(is_neighbor_undefined, "some");
 }
 
-Stone.prototype.die = function() {
+Stone.prototype.removeFromBoard = function() {
     this.board.stones[this.x][this.y] = null;
     if (this.group) {
-        this.group.stones = this.group.stones.filter(function(stone) {
-            return stone != this;
-        });
         this.group = null;
+        this.neighbors(function(neighbor) {
+            if (neighbor && this.color == neighbor.color) {
+                neighbor.rediscoverGroup();
+            }
+        });
     }
 }
 
 function Group(stones) {
+    if (!stones) {
+        stones = []
+    }
     this.stones = stones;
     var i;
     for (i = 0; i < stones.length; i++) {
@@ -171,13 +206,14 @@ Group.prototype.hasLiberty = function() {
 Group.prototype.die = function() {
     this.stones.forEach(function(stone) {
         stone.group = null;
-        stone.die();
+        stone.removeFromBoard();
     });
 }
 function Record() {
     this.board = new Board();
     this.current_move = null;
     this.root_move = null;
+    this._static_moves = {w: {}, b: {}};
 }
 
 Record.prototype.loadFromSgfString = function(sgf_data) {
@@ -243,6 +279,8 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
                     cur_mv.aw.push(value);
                 } else if (method == "AB") {
                     cur_mv.ab.push(value);
+                } else if (method == "AE") {
+                    cur_mv.ae.push(value);
                 }
             }
         } else {
@@ -254,21 +292,55 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
     this.root_move = root_mv;
 
     // load static moves
-    drawStatic(root_mv, this.board);
+    this._addStatic();
 
     this.board.dispatchEvent("change");
 }
 
-function drawStatic(move, board) {
-    if (move) {
-        move.aw.forEach(function(coded_coord) {
-            var board_coords = sgfCoordToIndecies(coded_coord);
-            board.addStone(board_coords[1], board_coords[0], "w", true);
-        });
-        move.ab.forEach(function(coded_coord) {
-            var board_coords = sgfCoordToIndecies(coded_coord);
-            board.addStone(board_coords[1], board_coords[0], "b", true);
-        });
+Record.prototype._addStatic = function() {
+    var move = this.current_move, i, board_coords, stone,
+        w = this._static_moves.w, b = this._static_moves.b;
+
+    // remove all static stones (to maybe be readded later)
+    for (coded_coord in w) {
+        board_coords = sgfCoordToIndecies(coded_coord);
+        stone = this.board.stones[board_coords[1]][board_coords[0]];
+        if (stone) {
+            stone.removeFromBoard();
+        }
+    }
+    for (coded_coord in b) {
+        board_coords = sgfCoordToIndecies(coded_coord);
+        stone = this.board.stones[board_coords[1]][board_coords[0]];
+        if (stone) {
+            console.log(stone);
+            stone.removeFromBoard();
+        }
+    }
+
+    for (i = 0; i < move.aw.length; i++) {
+        coded_coord = move.aw[i];
+        delete b[coded_coord];
+        w[coded_coord] = true;
+    }
+    for (i = 0; i < move.ab.length; i++) {
+        coded_coord = move.ab[i];
+        delete w[coded_coord];
+        b[coded_coord] = true;
+    }
+    for (i = 0; i < move.ae.length; i++) {
+        coded_coord = move.ae[i];
+        delete b[coded_coord];
+        delete w[coded_coord];
+    }
+
+    for (coded_coord in w) {
+        board_coords = sgfCoordToIndecies(coded_coord);
+        this.board.addStone(board_coords[1], board_coords[0], "w", true);
+    }
+    for (coded_coord in b) {
+        board_coords = sgfCoordToIndecies(coded_coord);
+        this.board.addStone(board_coords[1], board_coords[0], "b", true);
     }
 }
 
@@ -290,7 +362,7 @@ Record.prototype._nextMove = function(suppress_change_event) {
             if (board_coords && this.current_move.color) {
                 this.board.addStone(board_coords[1], board_coords[0], this.current_move.color.toLowerCase(), suppress_change_event);
             }
-            drawStatic(this.current_move, this.board);
+            this._addStatic();
 
             if (!suppress_change_event) {
                 this.board.dispatchEvent("change");
@@ -334,6 +406,7 @@ function Move() {
     this.meta = "";
     this.aw = [];
     this.ab = [];
+    this.ae = [];
 }
 
 Move.prototype.addNextMove = function(mv) {

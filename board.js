@@ -40,6 +40,13 @@ Board.prototype.addStone = function(x, y, color, suppress_change_event) {
     }
 }
 
+Board.prototype.removeStone = function (x, y, suppress_change_event) {
+    var stone = this.stones[x][y];
+    if (stone) {
+        
+    }
+}
+
 Board.prototype.serialize = function() {
     var raw_board = {w: [], b: [], size: this.size}, stone, i, j;
     for (i = 0; i < this.stones.length; i++) {
@@ -98,6 +105,29 @@ Stone.prototype.neighbors = function(action, array_fn) {
         });
 }
 
+Stone.prototype.rediscoverGroup = function(new_group) {
+    if (!new_group) {
+        new_group = new Group();
+    }
+
+    console.log("rediscovering group");
+
+    if (this.group) {
+        this.group.stones = this.group.stones.filter(function(stone) {
+            return stone != this;
+        });
+    }
+    this.group = new_group;
+    this.group.stones.push(this);
+
+    var reassignNeighbors = function(neighbor) {
+        if (neighbor && this.color == neighbor.color && this.group != neighbor.group) {
+            neighbor.rediscoverGroup(new_group);
+        }
+    };
+    this.neighbors(reassignNeighbors);
+}
+
 Stone.prototype.mergeGroup = function() {
     var merge_neighbor = function(neighbor) {
         if (neighbor && neighbor.color == this.color) {
@@ -133,17 +163,22 @@ Stone.prototype.hasLiberty = function() {
     return this.neighbors(is_neighbor_undefined, "some");
 }
 
-Stone.prototype.die = function() {
+Stone.prototype.removeFromBoard = function() {
     this.board.stones[this.x][this.y] = null;
     if (this.group) {
-        this.group.stones = this.group.stones.filter(function(stone) {
-            return stone != this;
-        });
         this.group = null;
+        this.neighbors(function(neighbor) {
+            if (neighbor && this.color == neighbor.color) {
+                neighbor.rediscoverGroup();
+            }
+        });
     }
 }
 
 function Group(stones) {
+    if (!stones) {
+        stones = []
+    }
     this.stones = stones;
     var i;
     for (i = 0; i < stones.length; i++) {
@@ -170,6 +205,6 @@ Group.prototype.hasLiberty = function() {
 Group.prototype.die = function() {
     this.stones.forEach(function(stone) {
         stone.group = null;
-        stone.die();
+        stone.removeFromBoard();
     });
 }
