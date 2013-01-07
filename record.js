@@ -3,6 +3,8 @@ function Record() {
     this.current_move = null;
     this.root_move = null;
     this._static_moves = {w: {}, b: {}};
+    this._variation_stack = [];
+    this._variation_index = -1;
 }
 
 Record.prototype.loadFromSgfString = function(sgf_data) {
@@ -70,6 +72,10 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
                     cur_mv.ab.push(value);
                 } else if (method == "AE") {
                     cur_mv.ae.push(value);
+                } else if (method == "LB") {
+                    cur_mv.lb.push(value);
+                } else if (method == "TR") {
+                    cur_mv.tr.push(value);
                 }
             }
         } else {
@@ -77,10 +83,9 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
             sgf_data = "";
         }
     }
-    this.current_move = root_mv;
+    this._setCurrentMove(root_mv);
     this.root_move = root_mv;
 
-    // load static moves
     this._addStatic();
 
     this.board.dispatchEvent("change");
@@ -90,19 +95,17 @@ Record.prototype._addStatic = function() {
     var move = this.current_move, i, board_coords, stone,
         w = this._static_moves.w, b = this._static_moves.b;
 
-    // remove all static stones (to maybe be readded later)
     for (coded_coord in w) {
         board_coords = sgfCoordToIndecies(coded_coord);
-        stone = this.board.stones[board_coords[1]][board_coords[0]];
+        stone = this.board.stones[board_coords[0]][board_coords[1]];
         if (stone) {
             stone.removeFromBoard();
         }
     }
     for (coded_coord in b) {
         board_coords = sgfCoordToIndecies(coded_coord);
-        stone = this.board.stones[board_coords[1]][board_coords[0]];
+        stone = this.board.stones[board_coords[0]][board_coords[1]];
         if (stone) {
-            console.log(stone);
             stone.removeFromBoard();
         }
     }
@@ -125,12 +128,16 @@ Record.prototype._addStatic = function() {
 
     for (coded_coord in w) {
         board_coords = sgfCoordToIndecies(coded_coord);
-        this.board.addStone(board_coords[1], board_coords[0], "w", true);
+        this.board.addStone(board_coords[0], board_coords[1], "w", true);
     }
     for (coded_coord in b) {
         board_coords = sgfCoordToIndecies(coded_coord);
-        this.board.addStone(board_coords[1], board_coords[0], "b", true);
+        this.board.addStone(board_coords[0], board_coords[1], "b", true);
     }
+}
+
+Record.prototype.setVariationStack = function(new_stack) {
+    this._variation_stack = new_stack;
 }
 
 Record.prototype.nextMove = function() {
@@ -138,18 +145,29 @@ Record.prototype.nextMove = function() {
 }
 
 Record.prototype._nextMove = function(suppress_change_event) {
+    var variation_to_take, board_coords;
     if (this.current_move.next_move) {
         if (!this.current_move.raw_board) {
             this.current_move.raw_board = this.board.serialize();
         }
 
-        this.current_move = this.current_move.next_move;
+        if (Object.prototype.toString.call(this.current_move.next_move) === "[object Array]") {
+            this._variation_index++;
+            if (!(this._variation_index in this._variation_stack)) {
+                this._variation_stack[this._variation_index] = 0;
+            }
+            variation_to_take = this._variation_stack[this._variation_index];
+            this._setCurrentMove(this.current_move.next_move[variation_to_take]);
+        } else {
+            this._setCurrentMove(this.current_move.next_move);
+        }
+
         if (this.current_move.raw_board) {
             this.board.deserialize(this.current_move.raw_board);
         } else {
-            var board_coords = sgfCoordToIndecies(this.current_move.position);
+            board_coords = sgfCoordToIndecies(this.current_move.position);
             if (board_coords && this.current_move.color) {
-                this.board.addStone(board_coords[1], board_coords[0], this.current_move.color.toLowerCase(), suppress_change_event);
+                this.board.addStone(board_coords[0], board_coords[1], this.current_move.color.toLowerCase(), suppress_change_event);
             }
             this._addStatic();
 
@@ -164,25 +182,37 @@ Record.prototype._nextMove = function(suppress_change_event) {
 
 Record.prototype.previousMove = function() {
     if (this.current_move.previous_move) {
-        this.current_move = this.current_move.previous_move;
+        this._setCurrentMove(this.current_move.previous_move);
         this.board.deserialize(this.current_move.raw_board);
     }
 }
 
 Record.prototype.playMove = function() {}
 
-Record.prototype.jumpToMove = function(move_num, variation) {
-    if (!variation) {
-        variation = [];
-    }
+Record.prototype.jumpToMove = function(move_num) {
     var move_counter = 0;
-    this.current_move = this.root_move;
+    this._setCurrentMove(this.root_move);
     this.board.clearBoard();
     while (move_counter < move_num) {
         this._nextMove(true);
         move_counter++;
     }
     this.board.dispatchEvent("change");
+}
+
+Record.prototype._setCurrentMove = function(move) {
+    this.current_move = move;
+    this.board.clearAnnotations();
+    var i, board_coords, label;
+    for (i = 0; i < move.lb.length; i++) {
+        label = move.lb[i].split(":");
+        board_coords = sgfCoordToIndecies(label[0]);
+        this.board.annotations[board_coords[0]][board_coords[1]] = label[1];
+    }
+    for (i = 0; i < move.tr.length; i++) {
+        board_coords = sgfCoordToIndecies(move.tr[i]);
+        this.board.annotations[board_coords[0]][board_coords[1]] = "[tr]";
+    }
 }
 
 function Move() {
@@ -196,6 +226,8 @@ function Move() {
     this.aw = [];
     this.ab = [];
     this.ae = [];
+    this.lb = [];
+    this.tr = [];
 }
 
 Move.prototype.addNextMove = function(mv) {

@@ -1,9 +1,11 @@
 function Board(size) {
     this.size = parseInt(size) || 19;
     this.stones = null;
+    this.annotations = null;
     this._events = {};
 
     this.clearBoard();
+    this.clearAnnotations();
 }
 
 Board.prototype.addEventListener = function(event_name, callback) {
@@ -17,6 +19,13 @@ Board.prototype.dispatchEvent = function(event_name, args) {
         for (i = 0; i < callbacks.length; i++) {
             callbacks[i].apply(this, args);
         }
+    }
+}
+
+Board.prototype.clearAnnotations = function() {
+    this.annotations = new Array(this.size);
+    for (var i = 0; i < this.stones.length; i++) {
+        this.annotations[i] = new Array(this.size);
     }
 }
 
@@ -109,8 +118,6 @@ Stone.prototype.rediscoverGroup = function(new_group) {
     if (!new_group) {
         new_group = new Group();
     }
-
-    console.log("rediscovering group");
 
     if (this.group) {
         this.group.stones = this.group.stones.filter(function(stone) {
