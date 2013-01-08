@@ -50,13 +50,6 @@ Board.prototype.addStone = function(x, y, color, suppress_change_event) {
     }
 }
 
-Board.prototype.removeStone = function (x, y, suppress_change_event) {
-    var stone = this.stones[x][y];
-    if (stone) {
-        
-    }
-}
-
 Board.prototype.serialize = function() {
     var raw_board = {w: [], b: [], size: this.size}, stone, i, j;
     for (i = 0; i < this.stones.length; i++) {
@@ -140,12 +133,13 @@ Stone.prototype.mergeGroup = function() {
     var merge_neighbor = function(neighbor) {
         if (neighbor && neighbor.color == this.color) {
             var neighbor_group = neighbor.group;
-            this.group = this.group || neighbor_group || new Group([this, neighbor]);
-            if (neighbor_group) {
+            if (this.group && neighbor_group) {
                 neighbor_group.setNewGroup(this.group);
+            } else if (neighbor_group) {
+                this.group = neighbor_group;
+                neighbor_group.stones.push(this);
             } else {
-                neighbor.group = this.group;
-                this.group.stones.push(neighbor);
+                neighbor.group = this.group = new Group([this, neighbor]);
             }
         }
     };
@@ -169,6 +163,11 @@ Stone.prototype.hasLiberty = function() {
         return !neighbor;
     }
     return this.neighbors(is_neighbor_undefined, "some");
+}
+
+Stone.prototype.die = function() {
+    // FIXME
+    this.removeFromBoard();
 }
 
 Stone.prototype.removeFromBoard = function() {
@@ -304,12 +303,12 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
     this._setCurrentMove(root_mv);
     this.root_move = root_mv;
 
-    this._addStatic();
+    this._applyStatic();
 
     this.board.dispatchEvent("change");
 }
 
-Record.prototype._addStatic = function() {
+Record.prototype._applyStatic = function() {
     var move = this.current_move, i, board_coords, stone,
         w = this._static_moves.w, b = this._static_moves.b;
 
@@ -387,7 +386,7 @@ Record.prototype._nextMove = function(suppress_change_event) {
             if (board_coords && this.current_move.color) {
                 this.board.addStone(board_coords[0], board_coords[1], this.current_move.color.toLowerCase(), suppress_change_event);
             }
-            this._addStatic();
+            this._applyStatic();
 
             if (!suppress_change_event) {
                 this.board.dispatchEvent("change");
@@ -440,6 +439,7 @@ Record.prototype._setCurrentMove = function(move) {
 function Move() {
     this.color = null;
     this.raw_board = null;
+    this.raw_static = null;
     this.comment = "";
     this.position = null;
     this.next_move = null;

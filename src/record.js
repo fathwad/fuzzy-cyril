@@ -86,12 +86,12 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
     this._setCurrentMove(root_mv);
     this.root_move = root_mv;
 
-    this._addStatic();
+    this._applyStatic();
 
     this.board.dispatchEvent("change");
 }
 
-Record.prototype._addStatic = function() {
+Record.prototype._applyStatic = function() {
     var move = this.current_move, i, board_coords, stone,
         w = this._static_moves.w, b = this._static_moves.b;
 
@@ -169,7 +169,7 @@ Record.prototype._nextMove = function(suppress_change_event) {
             if (board_coords && this.current_move.color) {
                 this.board.addStone(board_coords[0], board_coords[1], this.current_move.color.toLowerCase(), suppress_change_event);
             }
-            this._addStatic();
+            this._applyStatic();
 
             if (!suppress_change_event) {
                 this.board.dispatchEvent("change");
@@ -222,6 +222,7 @@ Record.prototype._setCurrentMove = function(move) {
 function Move() {
     this.color = null;
     this.raw_board = null;
+    this.raw_static = null;
     this.comment = "";
     this.position = null;
     this.next_move = null;

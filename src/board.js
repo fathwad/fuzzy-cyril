@@ -49,13 +49,6 @@ Board.prototype.addStone = function(x, y, color, suppress_change_event) {
     }
 }
 
-Board.prototype.removeStone = function (x, y, suppress_change_event) {
-    var stone = this.stones[x][y];
-    if (stone) {
-        
-    }
-}
-
 Board.prototype.serialize = function() {
     var raw_board = {w: [], b: [], size: this.size}, stone, i, j;
     for (i = 0; i < this.stones.length; i++) {
@@ -139,12 +132,13 @@ Stone.prototype.mergeGroup = function() {
     var merge_neighbor = function(neighbor) {
         if (neighbor && neighbor.color == this.color) {
             var neighbor_group = neighbor.group;
-            this.group = this.group || neighbor_group || new Group([this, neighbor]);
-            if (neighbor_group) {
+            if (this.group && neighbor_group) {
                 neighbor_group.setNewGroup(this.group);
+            } else if (neighbor_group) {
+                this.group = neighbor_group;
+                neighbor_group.stones.push(this);
             } else {
-                neighbor.group = this.group;
-                this.group.stones.push(neighbor);
+                neighbor.group = this.group = new Group([this, neighbor]);
             }
         }
     };
@@ -168,6 +162,11 @@ Stone.prototype.hasLiberty = function() {
         return !neighbor;
     }
     return this.neighbors(is_neighbor_undefined, "some");
+}
+
+Stone.prototype.die = function() {
+    // FIXME
+    this.removeFromBoard();
 }
 
 Stone.prototype.removeFromBoard = function() {
