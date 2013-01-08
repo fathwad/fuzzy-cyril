@@ -151,6 +151,10 @@ Record.prototype._nextMove = function(suppress_change_event) {
             this.current_move.raw_board = this.board.serialize();
         }
 
+        if (!this.current_move.raw_static) {
+            this.current_move.raw_static = JSON.stringify(this._static_moves);
+        }
+
         if (Object.prototype.toString.call(this.current_move.next_move) === "[object Array]") {
             this._variation_index++;
             if (!(this._variation_index in this._variation_stack)) {
@@ -187,6 +191,7 @@ Record.prototype.previousMove = function() {
             this._variation_index--;
         }
         this.board.deserialize(this.current_move.raw_board);
+        this._static_moves = JSON.parse(this.current_move.raw_static);
     }
 }
 
