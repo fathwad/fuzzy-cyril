@@ -1,7 +1,7 @@
 (function($) {
-    //:INCLUDE board.js
-    //:INCLUDE record.js
-    //:INCLUDE draw.js
+    //:INCLUDE src/board.js
+    //:INCLUDE src/record.js
+    //:INCLUDE src/draw.js
 
     $.fn.kifu = function(sgf_data_or_url) {
         if (this.length == 0 || !this[0].getContext) {
