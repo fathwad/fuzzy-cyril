@@ -401,6 +401,9 @@ Record.prototype._nextMove = function(suppress_change_event) {
 Record.prototype.previousMove = function() {
     if (this.current_move.previous_move) {
         this._setCurrentMove(this.current_move.previous_move);
+        if (Object.prototype.toString.call(this.current_move.next_move) === "[object Array]") {
+            this._variation_index--;
+        }
         this.board.deserialize(this.current_move.raw_board);
     }
 }
@@ -410,6 +413,7 @@ Record.prototype.playMove = function() {}
 Record.prototype.jumpToMove = function(move_num) {
     var move_counter = 0;
     this._setCurrentMove(this.root_move);
+    this._variation_index = -1;
     this.board.clearBoard();
     while (move_counter < move_num) {
         this._nextMove(true);
@@ -585,7 +589,7 @@ function drawBoard(board, canvas) {
                         dataType: 'text',
                         success: function(data) {
                             record.loadFromSgfString(data);
-                            this.data("kifu_record", record);
+                            jq_obj.data("kifu_record", record);
                         }
                     });
                 } else {

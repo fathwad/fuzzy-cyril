@@ -22,7 +22,7 @@
                         dataType: 'text',
                         success: function(data) {
                             record.loadFromSgfString(data);
-                            this.data("kifu_record", record);
+                            jq_obj.data("kifu_record", record);
                         }
                     });
                 } else {
