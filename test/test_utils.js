@@ -2,6 +2,8 @@ var test_sgf = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[19]KM[0.00]
 var test_seq = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[19]KM[0.00]PW[Frank]PB[Alex];B[jj];W[ji];B[ij];W[kj];B[ki];W[lj];B[jh];W[kh];B[ii])"
 var test_blob = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[19]KM[0.00]AB[ji][ki][ij][jj][kj][jk])"
 var test_funky = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[19]KM[0.00]AW[ap][bp][cp]AB[ao][bo][co][aq][bq][cq])"
+var test_ladder = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[19]KM[0.00]AW[ki][jj][kj][ik][jk]AB[ji][ij][lj][hk][kk][il][jl])"
+var test_ladder_seq = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[19]KM[0.00]AW[jj][kj][ik][jk]AB[ji][ij][lj][hk][kk][il][jl];AW[ki])"
 
 function test_print_board(board) {
     for (var i = 0; i < board.stones.length; i++) {
