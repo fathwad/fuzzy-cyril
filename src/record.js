@@ -76,6 +76,9 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
                     cur_mv.lb.push(value);
                 } else if (method == "TR") {
                     cur_mv.tr.push(value);
+                } else if (method == "SZ") {
+                    this.board.size = parseInt(value);
+                    this.board.clearBoard()
                 }
             }
         } else {
