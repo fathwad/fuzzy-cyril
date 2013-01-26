@@ -153,7 +153,7 @@ Stone.prototype.killNeighbors = function() {
         if (neighbor && neighbor.color != this.color) {
             var group = neighbor.group || neighbor;
             if (!group.hasLiberty()) {
-                group.die();
+                this.board.dispatchEvent("stones_killed", group.die());
             }
         }
     }
@@ -216,4 +216,5 @@ Group.prototype.die = function() {
         stone.group = null;
         stone.removeFromBoard();
     });
+    return [this.stones];
 }

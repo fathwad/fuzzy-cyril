@@ -9,6 +9,9 @@ var test_no_static_cap_3 = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ
 var test_no_static_cap_3_2 = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[19]KM[0.00];B[co];W[dp];B[cq];W[cp];B[dq];W[ep];B[bp];W[eq];B[fp];W[er];B[dr];W[bo];B[bn];W[bq];B[ao];W[cr];B[aq];W[ds])"
 var test_9x9_game = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[9]HA[7]KM[0.00]PW[Frank]PB[Lynda]AB[cc][gc][ce][ee][ge][cg][gg];W[df];B[de];W[cf];B[dg];W[ef];B[bf];W[eg];B[ff];W[eh];B[dh];W[be];B[bd];W[bg];B[ae];W[ch];B[ag];W[di];B[bh];W[gh];B[cg];W[dg];B[bg];W[hg];B[hf];W[fg];B[gf];W[hh];B[if];W[bi];B[ig];W[ih];B[];W[ci])"
 var test_no_static_ladder = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[19]KM[0.00];B[jk];W[ij];B[ik];W[in];B[hj];W[lo];B[ii];W[jj];B[kj];W[ji];B[jh];W[ki];B[li];W[kh];B[kg];W[lh];B[mh];W[lg];B[lf])"
+var test_static_cap = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[19]KM[0.00]AW[jj]AB[ij][kj][jk];B[ji])"
+var test_static_cap_2 = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[19]KM[0.00]AW[ji][jj]AB[ii][ki][ij][kj][jk];B[jh])"
+var hybrid_cap = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[19]KM[0.00]AW[jj]AB[ii][ij][kj][jk];B[ki];W[ji];B[jh])"
 
 function test_print_board(board) {
     for (var i = 0; i < board.stones.length; i++) {

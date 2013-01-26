@@ -5,6 +5,25 @@ function Record() {
     this._static_moves = {w: {}, b: {}};
     this._variation_stack = [];
     this._variation_index = -1;
+
+    // Static position needs to be updated when stones are killed
+    var record = this;
+    this.board.addEventListener("stones_killed", function(dead_stones) {
+        var i, key, w = record._static_moves.w, b = record._static_moves.b;
+        for (i = 0; i < dead_stones.length; i++) {
+            for (key in w) {
+                if (key == indeciesToSgfCoord(dead_stones[i])) {
+                    delete w[key];
+                }
+            }
+
+            for (key in b) {
+                if (key == indeciesToSgfCoord(dead_stones[i])) {
+                    delete b[key];
+                }
+            }
+        }
+    });
 }
 
 Record.prototype.loadFromSgfString = function(sgf_data) {
@@ -265,5 +284,13 @@ function sgfCoordToIndecies(sgf_coord) {
         return [sgf_coord.charCodeAt(0) - 97, sgf_coord.charCodeAt(1) - 97];
     } else {
         return [];
+    }
+}
+
+function indeciesToSgfCoord(xy_obj) {
+    if (xy_obj) {
+        return String.fromCharCode(xy_obj.x + 97) + String.fromCharCode(xy_obj.y + 97);
+    } else {
+        return "";
     }
 }
