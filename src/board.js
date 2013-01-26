@@ -137,6 +137,9 @@ Stone.prototype.mergeGroup = function() {
             } else if (neighbor_group) {
                 this.group = neighbor_group;
                 neighbor_group.stones.push(this);
+            } else if (this.group) {
+                neighbor.group = this.group;
+                this.group.stones.push(neighbor);
             } else {
                 neighbor.group = this.group = new Group([this, neighbor]);
             }
