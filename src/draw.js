@@ -63,13 +63,23 @@ function drawBoard(board, canvas) {
 
             black_stone = stone && stone.color == "b";
             if (annotation) {
+                padded_stone_radius = stone_radius - 1;
                 if (annotation == "[tr]") {
-                    padded_stone_radius = stone_radius - 1;
                     ctx.beginPath();
                     ctx.moveTo(x_pos, y_pos - padded_stone_radius);
                     ctx.lineTo(x_pos + padded_stone_radius * Math.sqrt(3) / 2, y_pos + padded_stone_radius/2);
                     ctx.lineTo(x_pos - padded_stone_radius * Math.sqrt(3) / 2, y_pos + padded_stone_radius/2);
                     ctx.lineTo(x_pos, y_pos - padded_stone_radius);
+                    if (black_stone) {
+                        ctx.strokeStyle = "rgb(255,255,255)";
+                    } else {
+                        ctx.strokeStyle = "rgb(0,0,0)";
+                    }
+                    ctx.stroke();
+                    ctx.closePath();
+                } else if (annotation == "[cr]") {
+                    ctx.beginPath();
+                    ctx.arc(x_pos, y_pos, stone_radius/2, 0, 2 * Math.PI);
                     if (black_stone) {
                         ctx.strokeStyle = "rgb(255,255,255)";
                     } else {

@@ -95,6 +95,8 @@ Record.prototype.loadFromSgfString = function(sgf_data) {
                     cur_mv.lb.push(value);
                 } else if (method == "TR") {
                     cur_mv.tr.push(value);
+                } else if (method == "CR") {
+                    cur_mv.cr.push(value);
                 } else if (method == "SZ") {
                     this.board.size = parseInt(value);
                     this.board.clearBoard()
@@ -250,6 +252,10 @@ Record.prototype._setCurrentMove = function(move) {
         board_coords = sgfCoordToIndecies(move.tr[i]);
         this.board.annotations[board_coords[0]][board_coords[1]] = "[tr]";
     }
+    for (i = 0; i < move.cr.length; i++) {
+        board_coords = sgfCoordToIndecies(move.cr[i]);
+        this.board.annotations[board_coords[0]][board_coords[1]] = "[cr]";
+    }
 }
 
 function Move() {
@@ -266,6 +272,7 @@ function Move() {
     this.ae = [];
     this.lb = [];
     this.tr = [];
+    this.cr = [];
 }
 
 Move.prototype.addNextMove = function(mv) {
