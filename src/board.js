@@ -170,6 +170,7 @@ Stone.prototype.hasLiberty = function() {
 Stone.prototype.die = function() {
     // FIXME
     this.removeFromBoard();
+    return [[this]];
 }
 
 Stone.prototype.removeFromBoard = function() {

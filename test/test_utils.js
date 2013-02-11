@@ -12,6 +12,7 @@ var test_no_static_ladder = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]S
 var test_static_cap = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[19]KM[0.00]AW[jj]AB[ij][kj][jk];B[ji])"
 var test_static_cap_2 = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[19]KM[0.00]AW[ji][jj]AB[ii][ki][ij][kj][jk];B[jh])"
 var hybrid_cap = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[19]KM[0.00]AW[jj]AB[ii][ij][kj][jk];B[ki];W[ji];B[jh])"
+var another_static_cap = "(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]RU[Japanese]SZ[13]HA[5]KM[0.00]PW[Saul]PB[Stephanie]AB[dd][jd][gg][dj][jj];W[ji];B[kf];W[kj];B[lg];W[jk];B[lh];W[ij])"
 
 function test_print_board(board) {
     for (var i = 0; i < board.stones.length; i++) {
